@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"database/sql"
 	"fmt"
+	"os"
 	"strconv"
+	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -14,9 +17,15 @@ func main() {
 	statement, _ :=
 		database.Prepare("CREATE TABLE IF NOT EXISTS people (id INTEGER PRIMARY KEY, firstname TEXT, lastname TEXT)")
 	statement.Exec()
+
+	fmt.Print("Enter a name in the format: Firstname, Lastname: \n")
+	reader := bufio.NewReader(os.Stdin)
+	rawInput, _ := reader.ReadString('\n')
+	slicedInput := strings.Split(rawInput, ", ")
+
 	statement, _ =
 		database.Prepare("INSERT INTO people (firstname, lastname) VALUES (?, ?)")
-	statement.Exec("Jenny", "Example")
+	statement.Exec(slicedInput[0], slicedInput[1])
 	rows, _ :=
 		database.Query("SELECT id, firstname, lastname FROM people")
 	var id int
