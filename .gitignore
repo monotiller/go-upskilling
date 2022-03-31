@@ -16,3 +16,6 @@
 
 # Databases, don't really need these in the git
 *.db
+
+# Sum file
+go.sum

@@ -4,14 +4,27 @@ import (
 	"bufio"
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"strings"
 
-	"github.com/dixonwille/wmenu"
 	_ "github.com/mattn/go-sqlite3"
 )
+
+func view(args ...string) {
+	database, _ :=
+		sql.Open("sqlite3", "./names.db")
+	rows, _ :=
+		database.Query("SELECT id, firstname, lastname FROM people")
+	var id int
+	var firstname string
+	var lastname string
+	for rows.Next() {
+		rows.Scan(&id, &firstname, &lastname)
+		fmt.Println(strconv.Itoa(id) + ": " + firstname + " " + lastname)
+	}
+	main()
+}
 
 func add(args ...string) {
 	database, _ :=
@@ -27,55 +40,20 @@ func add(args ...string) {
 		database.Prepare("INSERT INTO people (firstname, lastname) VALUES (?, ?)")
 	statement.Exec(slicedInput[0], slicedInput[1])
 
-	return
-}
-
-func view(args ...string) {
-	database, _ :=
-		sql.Open("sqlite3", "./names.db")
-	rows, _ :=
-		database.Query("SELECT id, firstname, lastname FROM people")
-	var id int
-	var firstname string
-	var lastname string
-	for rows.Next() {
-		rows.Scan(&id, &firstname, &lastname)
-		fmt.Println(strconv.Itoa(id) + ": " + firstname + " " + lastname)
-	}
-	return
-}
-
-type userInput struct {
-	option wmenu.Opt
-}
-
-func (u *userInput) optFunc(option wmenu.Opt) error {
-	u.option = option
-	return nil
-}
-
-func createMenu(p string, m []string, u *userInput) {
-	menu := wmenu.NewMenu(p)
-	menu.ChangeReaderWriter(os.Stdin, os.Stdout, os.Stderr)
-	for i, m := range m {
-		menu.Option(m, i, false, u.optFunc)
-
-	}
-	err := menu.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
+	main()
 }
 
 func main() {
-	prompt := "Please select an option"
-	menuitems := []string{"View entries in database", "Add entry to database"}
-	u := &userInput{}
-	createMenu(prompt, menuitems, u)
-	switch u.option.ID {
-	case 0:
-		view()
+	fmt.Print("Welcome to the database manager\nPlease select an option:\n\n1) View database\n2) Add entry to database\n3) Exit\n\n")
+	var i int
+	fmt.Scanf("%d", &i)
+	switch i {
 	case 1:
+		view()
+	case 2:
 		add()
+	case 3:
+		fmt.Print("Thank you, goodbye!")
+		os.Exit(0)
 	}
 }
