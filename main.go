@@ -27,26 +27,37 @@ func view(args ...string) {
 }
 
 func add(args ...string) {
+	var i int
+	var j bool
+	j = true
 	database, _ :=
 		sql.Open("sqlite3", "./names.db")
 	statement, _ :=
 		database.Prepare("CREATE TABLE IF NOT EXISTS people (id INTEGER PRIMARY KEY, firstname TEXT, lastname TEXT)")
 	statement.Exec()
-	fmt.Print("Enter a name in the format: Firstname, Lastname: \n")
-	reader := bufio.NewReader(os.Stdin)
-	rawInput, _ := reader.ReadString('\n')
-	slicedInput := strings.Split(rawInput, ", ")
-	statement, _ =
-		database.Prepare("INSERT INTO people (firstname, lastname) VALUES (?, ?)")
-	statement.Exec(slicedInput[0], slicedInput[1])
+	for j == true {
+		fmt.Print("How many entries would you like to make?")
+		fmt.Scanf("%d", &i)
+		for counter := 0; counter < i; counter++ {
+			fmt.Print("Enter a name in the format: Firstname, Lastname: \n")
+			reader := bufio.NewReader(os.Stdin)
+			rawInput, _ := reader.ReadString('\n')
+			slicedInput := strings.Split(rawInput, ", ")
+			statement, _ =
+				database.Prepare("INSERT INTO people (firstname, lastname) VALUES (?, ?)")
+			statement.Exec(slicedInput[0], slicedInput[1])
+		}
+		fmt.Print("Would you like to add more entries?")
 
+	}
 	main()
 }
 
 func main() {
-	fmt.Print("Welcome to the database manager\nPlease select an option:\n\n1) View database\n2) Add entry to database\n3) Exit\n\n")
 	var i int
+	fmt.Print("Welcome to the database manager\nPlease select an option:\n\n1) View database\n2) Add entry to database\n3) Exit\n\n")
 	fmt.Scanf("%d", &i)
+	fmt.Print("\n")
 	switch i {
 	case 1:
 		view()
