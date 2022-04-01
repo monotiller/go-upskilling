@@ -28,15 +28,15 @@ func view(args ...string) {
 
 func add(args ...string) {
 	var i int
-	var j bool
-	j = true
+	var j int
+	j = 1
 	database, _ :=
 		sql.Open("sqlite3", "./names.db")
 	statement, _ :=
 		database.Prepare("CREATE TABLE IF NOT EXISTS people (id INTEGER PRIMARY KEY, firstname TEXT, lastname TEXT)")
 	statement.Exec()
-	for j == true {
-		fmt.Print("How many entries would you like to make?")
+	for j == 1 {
+		fmt.Print("How many entries would you like to make?\n")
 		fmt.Scanf("%d", &i)
 		for counter := 0; counter < i; counter++ {
 			fmt.Print("Enter a name in the format: Firstname, Lastname: \n")
@@ -47,8 +47,9 @@ func add(args ...string) {
 				database.Prepare("INSERT INTO people (firstname, lastname) VALUES (?, ?)")
 			statement.Exec(slicedInput[0], slicedInput[1])
 		}
-		fmt.Print("Would you like to add more entries?")
-
+		fmt.Print("Would you like to add more entries?\n1) Yes\n2) No\n")
+		fmt.Scanf("%d", &j)
+		fmt.Printf("\n")
 	}
 	main()
 }
