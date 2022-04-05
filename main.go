@@ -10,11 +10,12 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/joho/sqltocsv"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func view(args ...string) {
-	fmt.Print("Printing out database:\n\n")
+	fmt.Println("Printing out database:")
 	database, _ :=
 		sql.Open("sqlite3", "./names.db")
 	rows, _ :=
@@ -26,7 +27,7 @@ func view(args ...string) {
 		rows.Scan(&id, &firstname, &lastname)
 		fmt.Println(strconv.Itoa(id) + ": " + firstname + " " + lastname)
 	}
-	fmt.Print("\n\n...print complete\nReturning to the main menu...\n\n")
+	fmt.Println("...print complete\nReturning to the main menu...")
 	main()
 }
 
@@ -40,10 +41,10 @@ func add(args ...string) {
 		database.Prepare("CREATE TABLE IF NOT EXISTS people (id INTEGER PRIMARY KEY, firstname TEXT, lastname TEXT)")
 	statement.Exec()
 	for contCheck == 1 {
-		fmt.Print("How many entries would you like to make?\n")
+		fmt.Println("How many entries would you like to make?")
 		fmt.Scanf("%d", &userAmount)
 		for counter := 0; counter < userAmount; counter++ {
-			fmt.Print("Enter a name in the format: Firstname, Lastname: \n")
+			fmt.Println("Enter a name in the format: Firstname, Lastname: ")
 			reader := bufio.NewReader(os.Stdin)
 			rawInput, _ := reader.ReadString('\n')
 			trimmed := strings.Trim(rawInput, "\n")
@@ -52,32 +53,29 @@ func add(args ...string) {
 				database.Prepare("INSERT INTO people (firstname, lastname) VALUES (?, ?)")
 			statement.Exec(slicedInput[0], slicedInput[1])
 		}
-		fmt.Print("Would you like to add more entries?\n1) Yes\n2) No\n")
+		fmt.Println("Would you like to add more entries?\n1) Yes\n2) No")
 		fmt.Scanf("%d", &contCheck)
-		fmt.Print("\n")
 	}
-	fmt.Print("\n\nReturning to main menu...\n\n")
+	fmt.Println("Returning to main menu...")
 	main()
 }
 
 func csvImport(args ...string) {
 	var path string
-	fmt.Print("Please put the raw path of the CSV\n")
+	fmt.Println("Please put the raw path of the CSV")
 	fmt.Scanf("%s", &path)
-	fmt.Print("Now opening: ", path)
+	fmt.Println("Now opening: ", path)
 	file, err := os.Open(path)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer file.Close()
-
-	fmt.Print("Starting import...\n\n")
+	fmt.Println("Starting import...")
 	database, _ :=
 		sql.Open("sqlite3", "./names.db")
 	statement, _ :=
 		database.Prepare("CREATE TABLE IF NOT EXISTS people (id INTEGER PRIMARY KEY, firstname TEXT, lastname TEXT)")
 	statement.Exec()
-
 	records, err := csv.NewReader(file).ReadAll()
 	if err != nil {
 		log.Fatal(err)
@@ -88,15 +86,31 @@ func csvImport(args ...string) {
 			database.Prepare("INSERT INTO people (firstname, lastname) VALUES (?, ?)")
 		statement.Exec(record[0], record[1])
 	}
-	fmt.Print("\n\nImport complete, returning to main menu...\n\n")
+	fmt.Println("Import complete, returning to main menu...")
+	main()
+}
+
+func csvExport(args ...string) {
+	var path string
+	fmt.Println("Please specify the raw path of where you would like to export the database to including file name.\nExample: /Documents/Export.csv")
+	fmt.Scanf("%s", &path)
+	fmt.Printf("Now exporting database to the file: %s\n\n", path)
+	database, _ :=
+		sql.Open("sqlite3", "./names.db")
+	rows, _ :=
+		database.Query("SELECT firstname, lastname FROM people")
+	err := sqltocsv.WriteFile(path, rows)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Export complete, returning you to the main menu")
 	main()
 }
 
 func main() {
 	var i int
-	fmt.Print("Welcome to the database manager\nPlease select an option:\n\n1) View database\n2) Add entry to database\n3) Import CSV\n4) Exit\n\n")
+	fmt.Println("Welcome to the database manager\nPlease select an option:\n\n1) View database\n2) Add entry to database\n3) Import CSV\n4) Export database to a CSV\n5) Exit")
 	fmt.Scanf("%d", &i)
-	fmt.Print("\n")
 	switch i {
 	case 1:
 		view()
@@ -105,7 +119,9 @@ func main() {
 	case 3:
 		csvImport()
 	case 4:
-		fmt.Print("Thank you, goodbye!")
+		csvExport()
+	case 5:
+		fmt.Println("Thank you, goodbye!")
 		os.Exit(0)
 	}
 }
